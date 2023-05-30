@@ -519,7 +519,7 @@ performance on your appliance.\n\nChoose graphics type:" 10 50 5 \
 "arc" "Intel ARC dedicated graphics" \
 "nvidia" "Nvidia dedicated graphics" 3>&1 1>&2 2>&3)
     # We only need xf86-video drivers for X11
-    if [[ "$DISPLAY_MODE" = "x11" ]] then     
+    if [[ "$DISPLAY_MODE" = "x11" ]]; then     
         if [[ "$GPU_TYPE" = "igpu-amd" ]]; then
             SYSTEM_PACKAGES+=('xf86-video-amdgpu')
         elif [[ "$GPU_TYPE" = "amd" ]]; then
