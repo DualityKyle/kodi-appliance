@@ -322,7 +322,6 @@ format_disk () {
         --menu "Select which disk you would like to install the appliance OS \
 onto. Keep in mind this will erase all data on the disk, but not until you \
 confim the changes.\n\nChoose disk:" 16 55 5 "${drives[@]}" 3>&1 1>&2 2>&3)
-        write_option DISK $DISK
         
         # NVMe partitions are named differently so check if disk is NVMe
         if [[ $? -eq 0 ]]; then
