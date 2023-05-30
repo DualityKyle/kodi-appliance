@@ -214,7 +214,7 @@ will be used.\n\nEnter username:" 13 40 3>&1 1>&2 2>&3)
                 --clear --stdout --nocancel --insecure \
                 --passwordbox "Please enter a password for user '$USER_NAME'.\n\nPassword:" 10 70)
 
-                if [ -z "$PASSWORD1"]; then
+                if [[ -z "$PASSWORD1" ]]; then
                     dialog --title "ERROR: Empty Password" \
                     --msgbox "You are not allowed to have an empty password." 5 55
                 else
@@ -250,7 +250,7 @@ will be used.\n\nEnter username:" 13 40 3>&1 1>&2 2>&3)
                     --clear --stdout --nocancel --insecure \
                     --passwordbox "Please enter a password for user '$USER_NAME'.\n\nPassword:" 10 70)
                     
-                    if [ -z "$PASSWORD1"]; then
+                    if [[ -z "$PASSWORD1" ]]; then
                         dialog --title "ERROR: Empty Password" \
                         --msgbox "You are not allowed to have an empty password." 5 55
                     else
