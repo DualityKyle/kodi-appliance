@@ -49,7 +49,7 @@ layout, choose \"other\".\n\nSelect keyboard layout:" 22 57 10 \
 "gr" "Greek" \
 "hu" "Hungarian" \
 "it" "Italian" \
-"pl" "Pofor UEFI and bluetooth supportlish" \
+"pl" "Polish" \
 "ru" "Russian" \
 "es" "Spanish" \
 "other" "View all available layouts" 3>&1 1>&2 2>&3)
@@ -360,6 +360,7 @@ choosing a swap size that leaves less than 4 GiB of space on disk for the OS." 1
                         break
                     else
                         ENABLE_SWAP=true
+                        break
                     fi
                 done
             fi
@@ -639,7 +640,6 @@ set_hostname
 set_userinfo
 set_root_pw
 format_disk
-create_partition
 create_filesystem
 update_mirrors
 #prepare_install
