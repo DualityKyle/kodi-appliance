@@ -381,8 +381,9 @@ you sure you want to destroy disk data and write the changes?" 13 60
                 wipefs -a "$DISK" &> /dev/null
                 # Partition disk
                 dialog --infobox "Partitioning $DISK with $FILE_SYSTEM..." 3 50
-                create_partition
+                create_partition_table
                 create_filesystem
+                break
             else
                 main_menu
             fi
@@ -392,7 +393,7 @@ you sure you want to destroy disk data and write the changes?" 13 60
     done
 }
 
-create_partition () {
+create_partition_table () {
     # Set GPT for UEFI or MBR for BIOS systems
     if $UEFI_SUPPORT; then
         parted -s "$DISK" mklabel gpt &> /dev/null
