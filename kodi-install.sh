@@ -488,7 +488,7 @@ prepare_install () {
     fi
 
     # Add Kodi packages
-    SYSTEM_PACKAGES+=('kodi lzo')
+    SYSTEM_PACKAGES+=('kodi' 'lzo')
 
     # Ask for Kodi Method
     DISPLAY_MODE=$(dialog --title "Select Kodi Display Method" \
@@ -565,9 +565,9 @@ will be installed:\n\n${BASE_PACKAGES[*]} ${SYSTEM_PACKAGES[*]}\n\nProceed with 
             if [[ $? -eq 0 ]]; then
                 SUCCESS=true
             else
-                #dialog --title "Installation Failure" \
-                #    --msgbox "The appliance has failed to installed. An error occured \
-#while running the \"pacstrap\" command." 7 65
+                dialog --title "Installation Failure" \
+                    --msgbox "The appliance has failed to installed. An error occured \
+while running the \"pacstrap\" command." 7 65
                 reset; exit 1
             fi
             break
