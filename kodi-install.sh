@@ -466,15 +466,11 @@ quicker install experience." 8 70
     fi
 }
 
-#########################
-# ADD ACTUAL COMMANDS TO FORMAT THE DISK
-#########################
-
 # Gather system-specific info from user to build package list
 prepare_install () {
     SYSTEM_PACKAGES=()
 
-    # Check for UEFI support
+    # Check for UEFI support (if UEFI we use systemd-boot, not GRUB)
     if ! $UEFI_SUPPORT; then
         SYSTEM_PACKAGES+=('grub')
     fi
@@ -491,7 +487,7 @@ prepare_install () {
         SYSTEM_PACKAGES+=('bluez' 'bluez-utils')
     fi
 
-    # Add Kodi
+    # Add Kodi packages
     SYSTEM_PACKAGES+=('kodi lzo')
 
     # Ask for Kodi Method
@@ -504,12 +500,16 @@ method:" 10 50 5 \
 "wayland" "Wayland kiosk-mode using cage" \
 "gbm" "Not recommended" 3>&1 1>&2 2>&3)
     if [[ "$DISPLAY_MODE" = "x11" ]]; then
-        SYSTEM_PACKAGES+=('xorg-server' 'xorg-xinit')
+        SYSTEM_PACKAGES+=('xorg-server' 'xorg-xinit' 'libinput')
     elif [[ "$DISPLAY_MODE" = "wayland" ]]; then
         SYSTEM_PACKAGES+=('cage' 'libinput' 'xorg-xwayland')
     else
         SYSTEM_PACKAGES+=('libinput')
     fi
+
+    # Add Vulkan ICD loader - Even though Kodi doesn't make use of Vulkan, we'll install 
+    # it anyway as some users may want to use Kodi as their hub for gaming/emulation
+    SYSTEM_PACKAGES+=('vulkan-icd-loader' 'vulkan-tools')    
 
     GPU_TYPE=$(dialog --title "Select Appliance GPU" \
         --menu "Select which type of graphics your appliance is equipped with. \
@@ -520,39 +520,40 @@ performance on your appliance.\n\nChoose graphics type:" 10 50 5 \
 "amd" "AMD Radeon dedicated graphics" \
 "arc" "Intel ARC dedicated graphics" \
 "nvidia" "Nvidia dedicated graphics" 3>&1 1>&2 2>&3)
-    # We only need xf86-video drivers for X11
+    # We only need xf86-video drivers when using X11
+    # If using Intel, it's actually recommended to not use xf86-video
     if [[ "$DISPLAY_MODE" = "x11" ]]; then     
-        if [[ "$GPU_TYPE" = "igpu-amd" ]]; then
-            SYSTEM_PACKAGES+=('xf86-video-amdgpu')
-        elif [[ "$GPU_TYPE" = "amd" ]]; then
+        if [[ "$GPU_TYPE" = "igpu-amd" ]] || [[ "$GPU_TYPE" = "amd" ]]; then
             SYSTEM_PACKAGES+=('xf86-video-amdgpu')
         fi
     fi
     # Install required video drivers
     if [[ "$GPU_TYPE" = "igpu-intel" ]]; then
         SYSTEM_PACKAGES+=('intel-media-driver' 'libva-intel-driver' 'vulkan-intel')      
-    elif [[ "$GPU_TYPE" = "igpu-amd" ]]; then
-        SYSTEM_PACKAGES+=('mesa' 'libva-mesa-driver' 'mesa-vdpau')
-    elif [[ "$GPU_TYPE" = "amd" ]]; then
-        SYSTEM_PACKAGES+=('mesa' 'libva-mesa-driver' 'mesa-vdpau')
+    elif [[ "$GPU_TYPE" = "igpu-amd" ]] || [[ "$GPU_TYPE" = "amd" ]]; then
+        SYSTEM_PACKAGES+=('mesa' 'libva-mesa-driver' 'mesa-vdpau' 'vulkan-radeon')
+    # NOTE: Intel Arc GPU's require kernel version 6.2 or higher
     elif [[ "$GPU_TYPE" = "arc" ]]; then
-        SYSTEM_PACKAGES+=('intel-media-driver')
+        SYSTEM_PACKAGES+=('intel-media-driver' 'vulkan-intel')
     elif [[ "$GPU_TYPE" = "nvidia" ]]; then
-        SYSTEM_PACKAGES+=('nvidia' 'nvidia-utils')
+        # Get GPU PCI device ID
+        gpu_pci_id=$(lspci -nn  | grep -ioP 'VGA.*NVIDIA.*\[\K[\w:]+' | sed 's/.*://')
+        # Ensure to install the supported Nvidia driver
+        if grep -Fq "$gpu_pci_id" "$DIR"/config/nvidia_390_pci_ids; then
+            SYSTEM_PACKAGES+=('nvidia-390xx' 'nvidia-390xx-utils' 'nvidia-390xx-settings')
+        # Fallback to nouveau for unsupported Nvidia cards
+        elif grep -Fq "$gpu_pci_id" "$DIR"/config/nvidia_340_pci_ids; then
+            SYSTEM_PACKAGES+=('xf86-video-nouveau' 'mesa')
+        else
+            SYSTEM_PACKAGES+=('nvidia' 'nvidia-utils' 'nvidia-settings')
+        fi
     fi
-    #arc:For hardware video acceleration, you must install 
-    # intel-media-driver and have a kernel with 
-    # CONFIG_DRM_I915_CAPTURE_ERROR disabled. 
-
-
-    #while true; do
-    #done
 }
 
 # Actually install the system with pacstrap
 install_system () {
     # Packages we will include regardless of user selections
-    BASE_PACKAGES=('base' 'linux' 'linux-firmware' 'nano' 'networkmanager' 'sudo' 'bash-completion' 'pacman-contrib' 'openssh' 'git' 'ufw')
+    BASE_PACKAGES=('base' 'linux' 'linux-firmware' 'networkmanager' 'pacman-contrib' 'bash-completion' 'sudo' 'nano' 'e2fsprogs' 'neofetch' 'openssh' 'wget' 'man-db' 'man-pages' 'texinfo' 'git' 'ufw')
 
     while true; do
         dialog --title "Appliance Installation Review" \
@@ -584,7 +585,7 @@ while running the \"pacstrap\" command." 7 65
 postinstall_setup () {
     # Generate fstab
     dialog --infobox "Generating fstab file..." 3 50
-    genfstab -U -p /mnt >> /mnt/etc/fstab
+    genfstab -U /mnt >> /mnt/etc/fstab
 
     # Set timezone and hardware clock
     dialog --infobox "Setting system clock and time zone..." 3 50
@@ -616,10 +617,33 @@ postinstall_setup () {
 
     # Set system hostname
     dialog --infobox "Setting appliance hostname..." 3 50
-    echo "$HOSTNAME" > /mnt/etc/hostname
+    echo "$HOST_NAME" > /mnt/etc/hostname
+    echo -e "127.0.0.1\tlocalhost\n::1\t\tlocalhost\n127.0.1.1\t$HOST_NAME.localdomain\t$HOST_NAME" >> /mnt/etc/hosts
 
     # User account setup
     dialog --infobox "Creating user account and password..." 3 50
+    if [[ -z "$FULL_NAME" ]]; then
+        arch-chroot /mnt useradd -m -aG wheel -s /bin/bash "$USER_NAME"
+    else
+        arch-chroot /mnt useradd -m -aG wheel -s /bin/bash -c "$FULL_NAME" "$USER_NAME"
+    fi
+    arch-chroot /mnt chpasswd <<<"$USER_NAME:$USER_PW"
+    # Add user to "wheel" for sudo access
+    sed -i 's/# %wheel ALL=(ALL) ALL$/%wheel ALL=(ALL) ALL/' /mnt/etc/sudoers
+
+    # Set root password
+    dialog --infobox "Setting root password..." 3 50
+    arch-chroot /mnt chpasswd <<<"root:$ROOT_PW"
+
+    # Enable networking and bluetooth daemons
+    dialog --infobox "Enabling networking service..." 3 50
+    arch-chroot /mnt systemctl enable NetworkManager.service &> /dev/null
+    if $BT_SUPPORT; then
+        dialog --infobox "Enabling bluetooth service..." 3 50
+        arch-chroot /mnt systemctl enable bluetooth.service &> /dev/null
+    fi
+
+    # Set up bootloader
 
 }
 
@@ -644,7 +668,7 @@ set_root_pw
 format_disk
 #create_filesystem
 update_mirrors
-#prepare_install
-#install_system
+prepare_install
+install_system
 #test_func
 #format_disk
