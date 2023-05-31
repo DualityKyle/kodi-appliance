@@ -372,7 +372,7 @@ choosing a swap size that leaves less than 4 GiB of space on disk for the OS." 1
             fi
             dialog --title "Confirm Appliance Disk Setup" --defaultno \
                 --yesno "WARNING: All data on $DISK will be lost! Make sure to review your \
-selections before continuing!\n\nFilesystem type: $FILE_SYSTEM\nSwap size: $swap_info\n\n Are \
+selections before continuing!\n\nFilesystem type: $FILE_SYSTEM\nSwap size: $swap_info\n\nAre \
 you sure you want to destroy disk data and write the changes?" 13 60
             if [[ $? -eq 0 ]]; then
                 # Erase all disk data
@@ -382,6 +382,7 @@ you sure you want to destroy disk data and write the changes?" 13 60
                 # Partition disk
                 dialog --infobox "Partitioning $DISK with $FILE_SYSTEM..." 3 50
                 create_partition
+                create_filesystem
             else
                 main_menu
             fi
@@ -640,7 +641,7 @@ set_hostname
 set_userinfo
 set_root_pw
 format_disk
-create_filesystem
+#create_filesystem
 update_mirrors
 #prepare_install
 #install_system
