@@ -311,7 +311,7 @@ for the root account.\n\nPassword:" 10 75)
 format_disk () {
     ENABLE_SWAP=false
     drives=()
-    for drive_name in $(lsblk -dnp -o NAME); do
+    for drive_name in $(lsblk -dnpr -e 7,11 -o NAME); do
         drive_size=$(lsblk -dnr -o SIZE "$drive_name")
         drives+=("$drive_name" "$drive_size")
     done
@@ -348,19 +348,19 @@ a swap partition on your disk?" 6 57
 the amount of swap space (in GiB) that you want to allocate on your disk. Only enter \
 the number. For example, if you want a swap partition size of 8 GiB, then simply \
 enter \"8\".\n\nEnter swap partition size:" 11 80 3>&1 1>&2 2>&3)
-            
-                    disk_size=$(lsblk -bdn -o SIZE "$DISK")
-                    disk_size_gib=$((disk_size/1024/1024/1024))
+                    if [[ $? -eq 0 ]]; then
+                        disk_size=$(lsblk -bdn -o SIZE "$DISK")
+                        disk_size_gib=$((disk_size/1024/1024/1024))
 
-                    if [[ "$SWAP_SIZE" -gt $((disk_size_gib - 4)) ]]; then
-                        dialog --title "Appliance Disk Setup" \
-                        --msgbox "ERROR: The amount you entered for the swap partition \
+                        if [[ "$SWAP_SIZE" -gt $((disk_size_gib - 4)) ]]; then
+                            dialog --title "Appliance Disk Setup" \
+                            --msgbox "ERROR: The amount you entered for the swap partition \
 exceeds the available space on your disk. Note that the install will prevent you from \
 choosing a swap size that leaves less than 4 GiB of space on disk for the OS." 10 57
-                        break
-                    else
-                        ENABLE_SWAP=true
-                        break
+                        else
+                            ENABLE_SWAP=true
+                            break
+                        fi
                     fi
                 done
             fi
@@ -370,7 +370,7 @@ choosing a swap size that leaves less than 4 GiB of space on disk for the OS." 1
             else
                 swap_info="No swap"
             fi
-            dialog --title "Confirm Appliance Disk Setup" -defaultno \
+            dialog --title "Confirm Appliance Disk Setup" --defaultno \
                 --yesno "WARNING: All data on $DISK will be lost! Make sure to review your \
 selections before continuing!\n\nFilesystem type: $FILE_SYSTEM\nSwap size: $swap_info\n\n Are \
 you sure you want to destroy disk data and write the changes?" 13 60
