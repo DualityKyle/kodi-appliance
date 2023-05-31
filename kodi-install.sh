@@ -670,5 +670,6 @@ format_disk
 update_mirrors
 prepare_install
 install_system
+postinstall_setup
 #test_func
 #format_disk
