@@ -340,6 +340,30 @@ different filesystem.\n\nChoose filesystem:" 16 68 5 \
 "btrfs" "B-tree filesystem" \
 "xfs" "XFS filesystem" 3>&1 1>&2 2>&3)
 
+            while true; do
+            ROOTFS_LABEL=$(dialog --title "Appliance Disk Setup" --nocancel \
+            --inputbox "Please a label for the root filesystem. This gives your filesystem \
+a friendly name to reference, and is also used when configuring the bootloader. The label must \
+begin with a letter, and may be up to 16 characters. You may use any alphanumeric characters, \
+dashes, or spaces. The label must end with an alphanumeric character. If left blank, a default \
+label, \"KodiBoxFS\" will be used.\n\nEnter filesystem label:" 15 80 3>&1 1>&2 2>&3)
+            if [[ "${#ROOTFS_LABEL}" -eq 0 ]]; then
+                ROOTFS_LABEL="KodiBoxFS"
+                break
+            elif printf "%s" "$ROOTFS_LABEL" | grep -Eoq "^[a-zA-Z0-9 -]{1,16}$" \
+            && [[ "${ROOTFS_LABEL:0:1}" != "-" ]] \
+            && [[ "${ROOTFS_LABEL: -1}" != "-" ]] \
+            && [[ "${ROOTFS_LABEL:0:1}" != " " ]] \
+            && [[ "${ROOTFS_LABEL: -1}" != " " ]]; then
+                break
+            else
+                dialog --title "Appliance Disk Setup" \
+                    --msgbox "ERROR! You entered an invalid filesystem label. Labels must begin with \
+and end with an alphanumeric character and be 16 characters or less. Additionally, they may only contain \
+dashes or spaces in addition to alphanumeric characters." 15 80
+            fi
+            done
+
             dialog --title "Appliance Disk Setup" --yesno "Do you want to create \
 a swap partition on your disk?" 6 57
             if [[ $? -eq 0 ]]; then
@@ -422,8 +446,10 @@ create_filesystem () {
                 -t 1:ef00 -t 2:8300 -t 3:8200 "$DISK" &> /dev/null
             mkswap "$SWAP_PARTITION" &> /dev/null
             swapon "$SWAP_PARTITION"
+            e2label "${DISK}${PREFIX}2" "${ROOTFS_LABEL}"
         else
             sgdisk -n 1:0:+512M -n 2:0:0 -t 1:ef00 -t 2:8300 "$DISK" &> /dev/null
+            e2label "${DISK}${PREFIX}2" "${ROOTFS_LABEL}"
         fi
         mkfs.fat -F32 "$BOOT_PARTITION" &> /dev/null
     else
@@ -623,13 +649,13 @@ postinstall_setup () {
     # User account setup
     dialog --infobox "Creating user account and password..." 3 50
     if [[ -z "$FULL_NAME" ]]; then
-        arch-chroot /mnt useradd -m -aG wheel -s /bin/bash "$USER_NAME"
+        arch-chroot /mnt useradd -m -G wheel -s /bin/bash "$USER_NAME"
     else
-        arch-chroot /mnt useradd -m -aG wheel -s /bin/bash -c "$FULL_NAME" "$USER_NAME"
+        arch-chroot /mnt useradd -m -G wheel -s /bin/bash -c "$FULL_NAME" "$USER_NAME"
     fi
     arch-chroot /mnt chpasswd <<<"$USER_NAME:$USER_PW"
     # Add user to "wheel" for sudo access
-    sed -i 's/# %wheel ALL=(ALL) ALL$/%wheel ALL=(ALL) ALL/' /mnt/etc/sudoers
+    sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /mnt/etc/sudoers
 
     # Set root password
     dialog --infobox "Setting root password..." 3 50
@@ -643,8 +669,15 @@ postinstall_setup () {
         arch-chroot /mnt systemctl enable bluetooth.service &> /dev/null
     fi
 
-    # Set up bootloader
+    # Create initramfs
+    arch-chroot /mnt mkinitcpio -P &> /dev/null
 
+    # Set up bootloader
+    # If UEFI we will use systemd boot
+    #if $UEFI_SUPPORT; then
+        # 
+    #fi
+    
 }
 
 test_func () {
@@ -658,18 +691,18 @@ dialog --title "UEFI" --msgbox "UEFI SUPPORT ENABLED" 5 55
 }
 
 welcome
-network_check
-set_keymap
-set_locale
-set_timezone
-set_hostname
-set_userinfo
-set_root_pw
+#network_check
+#set_keymap
+#set_locale
+#set_timezone
+#set_hostname
+#set_userinfo
+#set_root_pw
 format_disk
-#create_filesystem
-update_mirrors
-prepare_install
-install_system
-postinstall_setup
+create_filesystem
+#update_mirrors
+#prepare_install
+#install_system
+#postinstall_setup
 #test_func
 #format_disk
