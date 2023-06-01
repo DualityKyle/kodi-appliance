@@ -355,6 +355,7 @@ label, \"KodiBoxFS\" will be used.\n\nEnter filesystem label:" 15 80 3>&1 1>&2 2
             && [[ "${ROOTFS_LABEL: -1}" != "-" ]] \
             && [[ "${ROOTFS_LABEL:0:1}" != " " ]] \
             && [[ "${ROOTFS_LABEL: -1}" != " " ]]; then
+                ROOTFS_LABEL=\"${ROOTFS_LABEL}\"
                 break
             else
                 dialog --title "Appliance Disk Setup" \
@@ -446,10 +447,10 @@ create_filesystem () {
                 -t 1:ef00 -t 2:8300 -t 3:8200 "$DISK" &> /dev/null
             mkswap "$SWAP_PARTITION" &> /dev/null
             swapon "$SWAP_PARTITION"
-            e2label "${DISK}${PREFIX}2" \"${ROOTFS_LABEL}\"
+            e2label "${DISK}${PREFIX}2" "${ROOTFS_LABEL}"
         else
             sgdisk -n 1:0:+512M -n 2:0:0 -t 1:ef00 -t 2:8300 "$DISK" &> /dev/null
-            e2label "${DISK}${PREFIX}2" \"${ROOTFS_LABEL}\"
+            e2label "${DISK}${PREFIX}2" "${ROOTFS_LABEL}"
         fi
         mkfs.fat -F32 "$BOOT_PARTITION" &> /dev/null
     else
