@@ -699,7 +699,7 @@ welcome
 #set_userinfo
 #set_root_pw
 format_disk
-create_filesystem
+#create_filesystem
 #update_mirrors
 #prepare_install
 #install_system
