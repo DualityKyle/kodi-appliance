@@ -18,7 +18,7 @@ welcome () {
     --ok-label "Continue" --msgbox "Welcome to the installation \
 script for your standalone Kodi appliance. You can use the ARROW \
 keys and the SPACE or ENTER keys to navigate and select your \
-desired options for your appliance." 12 50
+desired options for your appliance. Let's get started!" 10 50
 }
 
 # Check if there is an internet connection
