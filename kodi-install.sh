@@ -660,15 +660,7 @@ dialog --title "UEFI" --msgbox "UEFI SUPPORT ENABLED" 5 55
     fi
 }
 
-welcome/boot/loader/entries/arch.conf
-
-esp/loader/entries/arch-fallback.conf
-
-title   Arch Linux (fallback initramfs)
-linux   /vmlinuz-linux
-initrd  /intel-ucode.img
-initrd  /initramfs-linux-fallback.img
-options root="LABEL=arch_os" rw
+welcome
 network_check
 set_keymap
 set_locale
