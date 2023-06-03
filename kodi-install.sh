@@ -414,14 +414,11 @@ create_filesystem () {
         ROOT_PARTITION="${DISK}${PREFIX}2"
         if $ENABLE_SWAP; then
             SWAP_PARTITION="${DISK}${PREFIX}3"
-            sgdisk -n 1:0:+512M -n 2:0:-"${SWAP_SIZE}G" -n 3:-"${SWAP_SIZE}G":-0  \
-                -t 1:ef00 -t 2:8300 -t 3:8200 "$DISK" &> /dev/null
+            echo -e "g\nn\n1\n\n+512M\nn\n2\n\n-${SWAP_SIZE}G\nn\n3\n\n\nt\n1\n1\nt\n2\n20\nt\n3\n19\nw\n" | fdisk -w always -W always "$DISK"
             mkswap "$SWAP_PARTITION" &> /dev/null
             swapon "$SWAP_PARTITION"
-            e2label "$ROOT_PARTITION" KodiBoxFS &> /dev/null
         else
             sgdisk -n 1:0:+512M -n 2:0:0 -t 1:ef00 -t 2:8300 "$DISK" &> /dev/null
-            e2label "$ROOT_PARTITION" KodiBoxFS &> /dev/null
         fi
         mkfs.fat -F32 "$BOOT_PARTITION" &> /dev/null
     else
@@ -439,6 +436,7 @@ create_filesystem () {
 
     # Format root partition with selected file system
     mkfs.ext4 "$ROOT_PARTITION" &> /dev/null
+    e2label "$ROOT_PARTITION" KodiBoxFS &> /dev/null
 
     # Mount root partition
     mount "$ROOT_PARTITION" /mnt
@@ -649,7 +647,7 @@ postinstall_setup () {
     # If UEFI we will use systemd boot
     if $UEFI_SUPPORT; then
         dialog --infobox "Setting up bootloader..." 3 50
-        arch-chroot /mnt bootctl install
+        arch-chroot /mnt bootctl install &> /dev/null
 
         echo -e "default         arch.conf\ntimeout         0\nconsole-mode    max\neditor          no" > /mnt/boot/loader/loader.conf
         echo -e "title    Arch Linux\nlinux    /vmlinuz-linux\ninitrd   /$CPU_TYPE-ucode.img\ninitrd   /initramfs-linux.img quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer\noptions  root=\"LABEL=KodiBoxFS\" rw" > /mnt/boot/loader/entries/arch.conf
