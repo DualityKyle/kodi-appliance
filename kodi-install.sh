@@ -329,40 +329,6 @@ confim the changes.\n\nChoose disk:" 16 55 5 "${drives[@]}" 3>&1 1>&2 2>&3)
             if [[ "$DISK" == *"nvme"* ]]; then
                 PARTITION_PREFIX="p"
             fi
-            
-            FILE_SYSTEM=$(dialog --title "Appliance Disk Setup" --nocancel \
-            --menu "Select which type of filesystem you want to use on the OS \
-drive. It is recommended to use ext4 unless you have a specific reason to use a \
-different filesystem.\n\nChoose filesystem:" 16 68 5 \
-"ext4" "Extended filesystem v4" \
-"ext3" "Extended filesystem v3" \
-"ext2" "Extended filesystem v2" \
-"btrfs" "B-tree filesystem" \
-"xfs" "XFS filesystem" 3>&1 1>&2 2>&3)
-
-            while true; do
-            ROOTFS_LABEL=$(dialog --title "Appliance Disk Setup" --nocancel \
-            --inputbox "Please a label for the root filesystem. This gives your filesystem \
-a friendly name to reference, and is also used when configuring the bootloader. The label must \
-begin with a letter, and may be up to 16 characters. You may use any alphanumeric characters, \
-dashes, or spaces. The label must end with an alphanumeric character. If left blank, a default \
-label, \"KodiBoxFS\" will be used.\n\nEnter filesystem label:" 15 80 3>&1 1>&2 2>&3)
-            if [[ "${#ROOTFS_LABEL}" -eq 0 ]]; then
-                ROOTFS_LABEL="KodiBoxFS"
-                break
-            elif printf "%s" "$ROOTFS_LABEL" | grep -Eoq "^[a-zA-Z0-9 -]{1,16}$" \
-            && [[ "${ROOTFS_LABEL:0:1}" != "-" ]] \
-            && [[ "${ROOTFS_LABEL: -1}" != "-" ]] \
-            && [[ "${ROOTFS_LABEL:0:1}" != " " ]] \
-            && [[ "${ROOTFS_LABEL: -1}" != " " ]]; then
-                break
-            else
-                dialog --title "Appliance Disk Setup" \
-                    --msgbox "ERROR! You entered an invalid filesystem label. Labels must begin with \
-and end with an alphanumeric character and be 16 characters or less. Additionally, they may only contain \
-dashes or spaces in addition to alphanumeric characters." 15 80
-            fi
-            done
 
             dialog --title "Appliance Disk Setup" --yesno "Do you want to create \
 a swap partition on your disk?" 6 57
@@ -395,8 +361,7 @@ choosing a swap size that leaves less than 4 GiB of space on disk for the OS." 1
                 swap_info="No swap"
             fi
             dialog --title "Confirm Appliance Disk Setup" --defaultno \
-                --yesno "WARNING: All data on $DISK will be lost! Make sure to review your \
-selections before continuing!\n\nFilesystem type: $FILE_SYSTEM\nSwap size: $swap_info\n\nAre \
+                --yesno "WARNING: All data on $DISK will be lost!\n\nAre \
 you sure you want to destroy disk data and write the changes?" 13 60
             if [[ $? -eq 0 ]]; then
                 # Erase all disk data
@@ -404,7 +369,7 @@ you sure you want to destroy disk data and write the changes?" 13 60
                 sgdisk -Z "$DISK" &> /dev/null
                 wipefs -a "$DISK" &> /dev/null
                 # Partition disk
-                dialog --infobox "Partitioning $DISK with $FILE_SYSTEM..." 3 50
+                dialog --infobox "Partitioning $DISK and creating filesystem..." 3 50
                 create_partition_table
                 create_filesystem
                 break
@@ -446,10 +411,10 @@ create_filesystem () {
                 -t 1:ef00 -t 2:8300 -t 3:8200 "$DISK" &> /dev/null
             mkswap "$SWAP_PARTITION" &> /dev/null
             swapon "$SWAP_PARTITION"
-            e2label "${DISK}${PREFIX}2" "${ROOTFS_LABEL}"
+            e2label "${DISK}${PREFIX}2" KodiBoxFS
         else
             sgdisk -n 1:0:+512M -n 2:0:0 -t 1:ef00 -t 2:8300 "$DISK" &> /dev/null
-            e2label "${DISK}${PREFIX}2" "${ROOTFS_LABEL}"
+            e2label "${DISK}${PREFIX}2" KodiBoxFS
         fi
         mkfs.fat -F32 "$BOOT_PARTITION" &> /dev/null
     else
@@ -466,10 +431,8 @@ create_filesystem () {
     fi
 
     # Format root partition with selected file system
-    case "$FILE_SYSTEM" in
-        btrfs|xfs) mkfs."$FILE_SYSTEM" -f "$ROOT_PARTITION" &> /dev/null ;;
-        *) mkfs."$FILE_SYSTEM" "$ROOT_PARTITION" &> /dev/null ;;
-    esac
+    mkfs.ext4 "$ROOT_PARTITION" &> /dev/null
+
     # Mount root partition
     mount "$ROOT_PARTITION" /mnt
     # If UEFI, mount EFI partition
@@ -691,14 +654,14 @@ dialog --title "UEFI" --msgbox "UEFI SUPPORT ENABLED" 5 55
 }
 
 welcome
-#network_check
-#set_keymap
-#set_locale
-#set_timezone
-#set_hostname
-#set_userinfo
-#set_root_pw
-format_disk
+network_check
+set_keymap
+set_locale
+set_timezone
+set_hostname
+set_userinfo
+set_root_pw
+#format_disk
 #create_filesystem
 #update_mirrors
 #prepare_install
