@@ -294,7 +294,7 @@ set_root_pw () {
     while ! $root_match; do
         ROOT_PW1=$(dialog --title "Create Root Password" --clear --stdout \
         --nocancel --insecure --passwordbox "Please enter a password \
-for the root account.\n\nPassword:" 10 75)
+for the root account.\n\nPassword:" 10 55)
 
         if [[ -z "$ROOT_PW1" ]]; then
             dialog --title "Create Root Password" \
@@ -469,13 +469,6 @@ prepare_install () {
         SYSTEM_PACKAGES+=('grub')
     fi
 
-    # Install filesystem tools if needed
-    if [[ "$FILE_SYSTEM" = "btrfs" ]]; then
-        SYSTEM_PACKAGES+=('btrfs-progs')
-    elif [[ "$FILE_SYSTEM" = "xfs" ]]; then
-        SYSTEM_PACKAGES+=('xfsprogs')
-    fi
-
     # Install packages for Bluetooth support
     if $BT_SUPPORT; then
         SYSTEM_PACKAGES+=('bluez' 'bluez-utils')
@@ -643,7 +636,8 @@ postinstall_setup () {
     # Set up bootloader
     # If UEFI we will use systemd boot
     #if $UEFI_SUPPORT; then
-        # 
+    #    bootctl install
+    #    echo -e "default\t\tarch.conf\ntimeout\t\t3\nconsole-mode\tmax\neditor\t\tno" > test.confe2label 
     #fi
     
 }
@@ -666,11 +660,9 @@ set_timezone
 set_hostname
 set_userinfo
 set_root_pw
-#format_disk
-#create_filesystem
-#update_mirrors
-#prepare_install
-#install_system
-#postinstall_setup
+format_disk
+update_mirrors
+prepare_install
+install_system
+postinstall_setup
 #test_func
-#format_disk
