@@ -577,7 +577,7 @@ postinstall_setup () {
     # Set timezone and hardware clock
     dialog --infobox "Setting system clock and time zone..." 3 50
     
-    ln -sf /usr/share/zoneinfo/"$TIMEZONE" /mnt/etc/localtime
+    ln -sf /usr/share/zoneinfo/"$TIME_ZONE" /mnt/etc/localtime
 
     if $UTC_TIME; then
         arch-chroot /mnt hwclock --systohc --utc
@@ -635,10 +635,18 @@ postinstall_setup () {
 
     # Set up bootloader
     # If UEFI we will use systemd boot
-    #if $UEFI_SUPPORT; then
-    #    bootctl install
-    #    echo -e "default\t\tarch.conf\ntimeout\t\t3\nconsole-mode\tmax\neditor\t\tno" > test.confe2label 
-    #fi
+    if $UEFI_SUPPORT; then
+        dialog --infobox "Setting up bootloader..." 3 50
+        arch-chroot /mnt bootctl install
+        echo -e "default         arch.conf\ntimeout         0\nconsole-mode    max\neditor          no" > /mnt/boot/loader/loader.conf
+        # initrd   /intel-ucode.img\n
+        echo -e "title    Arch Linux\nlinux    /vmlinuz-linux\ninitrd   /initramfs-linux.img quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer\noptions  root="LABEL=KodiBoxFS" rw" > /mnt/boot/loader/entries/arch.conf
+        echo -e "title    Arch Linux (fallback initramfs)\nlinux    /vmlinuz-linux\ninitrd   /initramfs-linux-fallback.img quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer\noptions  root="LABEL=KodiBoxFS" rw" > /mnt/boot/loader/entries/arch-fallback.conf
+    else
+        dialog --infobox "Setting up bootloader..." 3 50
+        arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg &> /dev/null
+        arch-chroot /mnt grub-install --target=i386-pc "$DISK" &> /dev/null
+    fi
     
 }
 
@@ -652,7 +660,15 @@ dialog --title "UEFI" --msgbox "UEFI SUPPORT ENABLED" 5 55
     fi
 }
 
-welcome
+welcome/boot/loader/entries/arch.conf
+
+esp/loader/entries/arch-fallback.conf
+
+title   Arch Linux (fallback initramfs)
+linux   /vmlinuz-linux
+initrd  /intel-ucode.img
+initrd  /initramfs-linux-fallback.img
+options root="LABEL=arch_os" rw
 network_check
 set_keymap
 set_locale
