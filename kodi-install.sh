@@ -377,7 +377,7 @@ you sure you want to destroy disk data and write the changes?" 13 60
                 sgdisk -Z "$DISK" &> /dev/null
                 # Partition disk
                 dialog --infobox "Partitioning $DISK and creating filesystem..." 3 50
-                create_partition_table
+                #create_partition_table
                 create_filesystem
                 break
             else
