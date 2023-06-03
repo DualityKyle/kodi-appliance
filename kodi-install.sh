@@ -162,7 +162,7 @@ select \"other\".\n\nSelect time zone:" 27 50 17 "${regions[@]}" 3>&1 1>&2 2>&3)
             fi
         else
             for other_region in $(find /usr/share/zoneinfo -mindepth 1 -maxdepth 1 -type f -printf '%f\n' \
-            | grep -E -v '/$|iso3166.tab|leapseconds|posixrules|tzdata.zi|zone.tab|zone1970.tab' | sort); do
+            | grep -E -v '/$|iso3166.tab|leapseconds|leapseconds.list|posixrules|tzdata.zi|zone.tab|zone1970.tab' | sort); do
                 other_regions+=("$other_region" "")
             done
             TIME_ZONE=$(dialog --title "Set Appliance Time Zone" --cancel-label "Back" \
@@ -176,7 +176,7 @@ select \"other\".\n\nSelect time zone:" 27 50 17 "${regions[@]}" 3>&1 1>&2 2>&3)
 
     dialog --title "Set Appliance Clock" --nocancel \
         --yesno "Would you like to use UTC time for the system clock? If you choose \"no\", \
-then local time will be used instead.\n\nIf you are not sure, the default is UTC." 8 85
+then local time will be used instead.\n\nIf you are not sure, the default is UTC." 9 60
     if [[ $? -ne 0 ]]; then
         UTC_TIME=false
     fi
