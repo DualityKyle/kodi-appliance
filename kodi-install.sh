@@ -44,6 +44,7 @@ set_keymap () {
 your appliance. Some common ones are listed below. If you don't see your preferred \
 layout, choose \"other\".\n\nSelect keyboard layout:" 22 57 10 \
 "us" "United States" \
+"uk" "English (UK)" \
 "fr" "French" \
 "de" "German" \
 "gr" "Greek" \
@@ -84,12 +85,16 @@ and region. Some common locales are listed below. If yours is not listed, choose
 "en_CA.UTF-8" "English (Canada)" \
 "en_GB.UTF-8" "English (United Kingdom)" \
 "zh_CN.UTF-8" "Chinese (Simplified)" \
+"zh_TW.UTF-8" "Chinese (Taiwan)" \
+"cs_CZ.UTF-8" "Czech (Czechia)" \
 "fr_FR.UTF-8" "French (France)" \
 "de_DE.UTF-8" "German (Germany)" \
+"el_GR.UTF-8" "Greek (Greece)" \
 "hi_IN.UTF-8" "Hindi (India)" \
 "it_IT.UTF-8" "Italian (Italy)" \
 "ja_JP.UTF-8" "Japanese (Japan)" \
 "ko_KR.UTF-8" "Korean (Korea)" \
+"pl_PL.UTF-8" "Polish (Poland)" \
 "pt_BR.UTF-8" "Portuguese (Brazil)" \
 "ru_RU.UTF-8" "Russian (Russia)" \
 "es_ES.UTF-8" "Spanish (Spain)" \
