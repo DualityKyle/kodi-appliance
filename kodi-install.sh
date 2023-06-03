@@ -420,6 +420,9 @@ create_filesystem () {
         else
             sgdisk -n 1:0:+512M -n 2:0:0 -t 1:ef00 -t 2:8300 "$DISK" &> /dev/null
         fi
+        # Format root partition with selected file system
+        mkfs.ext4 "$ROOT_PARTITION" &> /dev/null
+        e2label "$ROOT_PARTITION" KodiBoxFS &> /dev/null
         mkfs.fat -F32 "$BOOT_PARTITION" &> /dev/null
     else
         ROOT_PARTITION="${DISK}${PREFIX}1"
@@ -433,10 +436,6 @@ create_filesystem () {
             echo -e "n\np\n1\n\n\nw" | fdisk "$DISK" &> /dev/null 
         fi
     fi
-
-    # Format root partition with selected file system
-    mkfs.ext4 "$ROOT_PARTITION" &> /dev/null
-    e2label "$ROOT_PARTITION" KodiBoxFS &> /dev/null
 
     # Mount root partition
     mount "$ROOT_PARTITION" /mnt
