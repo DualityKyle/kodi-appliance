@@ -14,6 +14,8 @@ welcome () {
         BT_SUPPORT=true
     fi
 
+    timedatectl set-ntp true
+
     dialog --title "Kodi Standalone Appliance Installer" \
     --ok-label "Continue" --msgbox "Welcome to the installation \
 script for your standalone Kodi appliance. You can use the ARROW \
@@ -371,8 +373,8 @@ you sure you want to destroy disk data and write the changes?" 13 60
             if [[ $? -eq 0 ]]; then
                 # Erase all disk data
                 dialog --infobox "Erasing data on $DISK..." 3 50
-                sgdisk -Z "$DISK" &> /dev/null
                 wipefs -a "$DISK" &> /dev/null
+                sgdisk -Z "$DISK" &> /dev/null
                 # Partition disk
                 dialog --infobox "Partitioning $DISK and creating filesystem..." 3 50
                 create_partition_table
@@ -556,8 +558,9 @@ install_system () {
         --yesno "The appliance is ready to be installed on $DISK. The following packages \
 will be installed:\n\n${BASE_PACKAGES[*]} ${SYSTEM_PACKAGES[*]}\n\nProceed with installation?" 0 0
         if [[ $? -eq 0 ]]; then
+
             clear
-            pacstrap /mnt "${BASE_PACKAGES[@]}" "${SYSTEM_PACKAGES[@]}"
+            pacstrap -K /mnt "${BASE_PACKAGES[@]}" "${SYSTEM_PACKAGES[@]}"
             if [[ $? -eq 0 ]]; then
                 SUCCESS=true
             else
@@ -585,7 +588,6 @@ postinstall_setup () {
 
     # Set timezone and hardware clock
     dialog --infobox "Setting system clock and time zone..." 3 50
-    
     ln -sf /usr/share/zoneinfo/"$TIME_ZONE" /mnt/etc/localtime
 
     if $UTC_TIME; then
@@ -616,6 +618,10 @@ postinstall_setup () {
     echo "$HOST_NAME" > /mnt/etc/hostname
     echo -e "127.0.0.1\tlocalhost\n::1\t\tlocalhost\n127.0.1.1\t$HOST_NAME.localdomain\t$HOST_NAME" >> /mnt/etc/hosts
 
+    # Create initramfs
+    dialog --infobox "Running mkinitcpio..." 3 50
+    arch-chroot /mnt mkinitcpio -P &> /dev/null
+    
     # User account setup
     dialog --infobox "Creating user account and password..." 3 50
     if [[ -z "$FULL_NAME" ]]; then
@@ -639,31 +645,19 @@ postinstall_setup () {
         arch-chroot /mnt systemctl enable bluetooth.service &> /dev/null
     fi
 
-    # Create initramfs
-    arch-chroot /mnt mkinitcpio -P &> /dev/null
-
     # Set up bootloader
     # If UEFI we will use systemd boot
     if $UEFI_SUPPORT; then
         dialog --infobox "Setting up bootloader..." 3 50
         arch-chroot /mnt bootctl install
+
         echo -e "default         arch.conf\ntimeout         0\nconsole-mode    max\neditor          no" > /mnt/boot/loader/loader.conf
         echo -e "title    Arch Linux\nlinux    /vmlinuz-linux\ninitrd   /$CPU_TYPE-ucode.img\ninitrd   /initramfs-linux.img quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer\noptions  root=\"LABEL=KodiBoxFS\" rw" > /mnt/boot/loader/entries/arch.conf
         echo -e "title    Arch Linux (fallback initramfs)\nlinux    /vmlinuz-linux\ninitrd   /$CPU_TYPE-ucode.img\ninitrd   /initramfs-linux-fallback.img quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer\noptions  root=\"LABEL=KodiBoxFS\" rw" > /mnt/boot/loader/entries/arch-fallback.conf
     else
-        dialog --infobox "Setting up bootloader..." 3 50
+        dialog --infobox "Setting up bootloader..." 3 50 
         arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg &> /dev/null
         arch-chroot /mnt grub-install --target=i386-pc "$DISK" &> /dev/null
-    fi
-}
-
-test_func () {
-    if $UEFI_SUPPORT; then
-dialog --title "UEFI" --msgbox "UEFI SUPPORT ENABLED" 5 55
-    fi
-
-    if $BT_SUPPORT; then
-    dialog --title "BT" --msgbox "BT SUPPORT ENABLED" 5 55
     fi
 }
 
@@ -680,4 +674,3 @@ update_mirrors
 prepare_install
 install_system
 postinstall_setup
-#test_func
