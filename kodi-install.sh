@@ -416,10 +416,10 @@ create_filesystem () {
                 -t 1:ef00 -t 2:8300 -t 3:8200 "$DISK" &> /dev/null
             mkswap "$SWAP_PARTITION" &> /dev/null
             swapon "$SWAP_PARTITION"
-            e2label "${DISK}${PREFIX}2" KodiBoxFS
+            e2label "$ROOT_PARTITION" KodiBoxFS &> /dev/null
         else
             sgdisk -n 1:0:+512M -n 2:0:0 -t 1:ef00 -t 2:8300 "$DISK" &> /dev/null
-            e2label "${DISK}${PREFIX}2" KodiBoxFS
+            e2label "$ROOT_PARTITION" KodiBoxFS &> /dev/null
         fi
         mkfs.fat -F32 "$BOOT_PARTITION" &> /dev/null
     else
@@ -456,7 +456,7 @@ quicker install experience." 8 70
 
     if [[ $? -eq 0 ]]; then
         dialog --infobox "Updating mirror list..." 3 50
-        reflector --latest 25 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+        reflector --latest 25 --protocol https --sort rate --save /etc/pacman.d/mirrorlist &> /dev/null
     fi
 }
 
@@ -491,7 +491,7 @@ prepare_install () {
         --default-item "x11" --menu "Select which method you would like to \
 use to display Kodi on the appliance. If you are unsure on this, we recommend \
 using the \"X11\" option for ease of use and compatibility.\n\nSelect display \
-method:" 10 50 5 \
+method:" 14 50 5 \
 "x11" "Xorg" \
 "wayland" "Wayland kiosk-mode using cage" \
 "gbm" "Not recommended" 3>&1 1>&2 2>&3)
@@ -510,7 +510,7 @@ method:" 10 50 5 \
     GPU_TYPE=$(dialog --title "Select Appliance GPU" \
         --menu "Select which type of graphics your appliance is equipped with. \
 Please ensure you choose the proper option, as this will help ensure proper video \
-performance on your appliance.\n\nChoose graphics type:" 10 50 5 \
+performance on your appliance.\n\nChoose graphics type:" 16 50 5 \
 "igpu-intel" "Intel integrated graphics" \
 "igpu-amd" "AMD integrated graphics" \
 "amd" "AMD Radeon dedicated graphics" \
@@ -655,7 +655,6 @@ postinstall_setup () {
         arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg &> /dev/null
         arch-chroot /mnt grub-install --target=i386-pc "$DISK" &> /dev/null
     fi
-    
 }
 
 test_func () {
