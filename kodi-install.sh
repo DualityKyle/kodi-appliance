@@ -274,7 +274,7 @@ will be used.\n\nEnter username:" 13 40 3>&1 1>&2 2>&3)
                 FULL_NAME=$(dialog --title "Create Appliance User" --nocancel \
                     --inputbox "Please enter the real name (display name) for the \
 appliance user. It is recommended to enter this information, but it may be \
-left blank.\n\nEnter display name:" 13 40 3>&1 1>&2 2>&3)
+left blank.\n\nEnter display name:" 13 56 3>&1 1>&2 2>&3)
                 # End the main loop
                 break
             fi
