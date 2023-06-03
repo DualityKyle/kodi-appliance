@@ -197,7 +197,7 @@ set_hostname () {
             dialog --title "Set Appliance Hostname" \
                 --msgbox "ERROR: Invalid Hostname Format! Machine hostnames may be \
 a maximum of 63 characters long and contain only alphanumeric characters or dashes. \
-Hostnames must also NOT begin or end with a dash." 9 75
+Hostnames must also NOT begin or end with a dash." 9 65
         fi
     done
 }
@@ -217,7 +217,7 @@ will be used.\n\nEnter username:" 13 40 3>&1 1>&2 2>&3)
             while ! $pw_match; do
                 PASSWORD1=$(dialog --title "Create Appliance User" \
                 --clear --stdout --nocancel --insecure \
-                --passwordbox "Please enter a password for user '$USER_NAME'.\n\nPassword:" 10 70)
+                --passwordbox "Please enter a password for user '$USER_NAME'.\n\nPassword:" 11 48)
 
                 if [[ -z "$PASSWORD1" ]]; then
                     dialog --title "ERROR: Empty Password" \
@@ -225,7 +225,7 @@ will be used.\n\nEnter username:" 13 40 3>&1 1>&2 2>&3)
                 else
                     PASSWORD2=$(dialog --title "Create Appliance User" \
                     --clear --stdout --insecure \
-                    --passwordbox "Re-enter password to verify:" 8 55)
+                    --passwordbox "Confirm password:" 8 55)
                     if [ "$PASSWORD1" != "$PASSWORD2" ]; then
                         dialog --title "ERROR: Passwords Do No Match" \
                         --msgbox "The two passwords you entered did not match." 5 55
@@ -253,7 +253,7 @@ will be used.\n\nEnter username:" 13 40 3>&1 1>&2 2>&3)
                 while ! $pw_match; do
                     PASSWORD1=$(dialog --title "Create Appliance User" \
                     --clear --stdout --nocancel --insecure \
-                    --passwordbox "Please enter a password for user '$USER_NAME'.\n\nPassword:" 10 70)
+                    --passwordbox "Please enter a password for user '$USER_NAME'.\n\nPassword:" 11 48)
                     
                     if [[ -z "$PASSWORD1" ]]; then
                         dialog --title "ERROR: Empty Password" \
@@ -261,7 +261,7 @@ will be used.\n\nEnter username:" 13 40 3>&1 1>&2 2>&3)
                     else
                         PASSWORD2=$(dialog --title "Create Appliance User" \
                         --clear --stdout --insecure \
-                        --passwordbox "Re-enter password to verify:" 8 55)
+                        --passwordbox "Confirm password:" 8 55)
                         if [ "$PASSWORD1" != "$PASSWORD2" ]; then
                             dialog --title "ERROR: Passwords Do No Match" \
                             --msgbox "The two passwords you entered did not match." 5 55
@@ -274,7 +274,7 @@ will be used.\n\nEnter username:" 13 40 3>&1 1>&2 2>&3)
                 FULL_NAME=$(dialog --title "Create Appliance User" --nocancel \
                     --inputbox "Please enter the real name (display name) for the \
 appliance user. It is recommended to enter this information, but it may be \
-left blank.\n\nEnter display name:" 15 80 3>&1 1>&2 2>&3)
+left blank.\n\nEnter display name:" 13 40 3>&1 1>&2 2>&3)
                 # End the main loop
                 break
             fi
