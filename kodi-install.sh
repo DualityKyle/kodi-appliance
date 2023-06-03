@@ -649,9 +649,9 @@ postinstall_setup () {
         dialog --infobox "Setting up bootloader..." 3 50
         arch-chroot /mnt bootctl install &> /dev/null
 
-        echo -e "default         arch.conf\ntimeout         0\nconsole-mode    max\neditor          no" > /mnt/boot/loader/loader.conf
-        echo -e "title    Arch Linux\nlinux    /vmlinuz-linux\ninitrd   /$CPU_TYPE-ucode.img\ninitrd   /initramfs-linux.img quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer\noptions  root=\"LABEL=KodiBoxFS\" rw" > /mnt/boot/loader/entries/arch.conf
-        echo -e "title    Arch Linux (fallback initramfs)\nlinux    /vmlinuz-linux\ninitrd   /$CPU_TYPE-ucode.img\ninitrd   /initramfs-linux-fallback.img quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer\noptions  root=\"LABEL=KodiBoxFS\" rw" > /mnt/boot/loader/entries/arch-fallback.conf
+        arch-chroot /mnt echo -e "default         arch.conf\ntimeout         0\nconsole-mode    max\neditor          no" > /boot/loader/loader.conf
+        arch-chroot /mnt echo -e "title    Arch Linux\nlinux    /vmlinuz-linux\ninitrd   /$CPU_TYPE-ucode.img\ninitrd   /initramfs-linux.img quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer\noptions  root=\"LABEL=KodiBoxFS\" rw" > /boot/loader/entries/arch.conf
+        arch-chroot /mnt echo -e "title    Arch Linux (fallback initramfs)\nlinux    /vmlinuz-linux\ninitrd   /$CPU_TYPE-ucode.img\ninitrd   /initramfs-linux-fallback.img quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer\noptions  root=\"LABEL=KodiBoxFS\" rw" > /boot/loader/entries/arch-fallback.conf
     else
         dialog --infobox "Setting up bootloader..." 3 50 
         arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg &> /dev/null
