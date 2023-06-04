@@ -414,15 +414,13 @@ create_filesystem () {
         ROOT_PARTITION="${DISK}${PREFIX}2"
         if $ENABLE_SWAP; then
             SWAP_PARTITION="${DISK}${PREFIX}3"
-            echo -e "g\nn\n1\n\n+512M\nn\n2\n\n-${SWAP_SIZE}G\nn\n3\n\n\nt\n1\n1\nt\n2\n20\nt\n3\n19\nw\n" | fdisk -w always -W always "$DISK"
+            echo -e "g\nn\n1\n\n+512M\nn\n2\n\n-${SWAP_SIZE}G\nn\n3\n\n\nt\n1\n1\nt\n2\n20\nt\n3\n19\nw\n" \
+                | fdisk -w always -W always "$DISK" &> /dev/null
             mkswap "$SWAP_PARTITION" &> /dev/null
             swapon "$SWAP_PARTITION"
         else
             sgdisk -n 1:0:+512M -n 2:0:0 -t 1:ef00 -t 2:8300 "$DISK" &> /dev/null
         fi
-        # Format root partition with selected file system
-        mkfs.ext4 "$ROOT_PARTITION" &> /dev/null
-        e2label "$ROOT_PARTITION" KodiBoxFS &> /dev/null
         mkfs.fat -F32 "$BOOT_PARTITION" &> /dev/null
     else
         ROOT_PARTITION="${DISK}${PREFIX}1"
@@ -436,6 +434,10 @@ create_filesystem () {
             echo -e "n\np\n1\n\n\nw" | fdisk "$DISK" &> /dev/null 
         fi
     fi
+
+    # Format root partition with selected file system
+    mkfs.ext4 "$ROOT_PARTITION" &> /dev/null
+    e2label "$ROOT_PARTITION" KodiBoxFS &> /dev/null
 
     # Mount root partition
     mount "$ROOT_PARTITION" /mnt
@@ -648,9 +650,9 @@ postinstall_setup () {
         dialog --infobox "Setting up bootloader..." 3 50
         arch-chroot /mnt bootctl install &> /dev/null
 
-        arch-chroot /mnt echo -e "default         arch.conf\ntimeout         0\nconsole-mode    max\neditor          no" > /boot/loader/loader.conf
-        arch-chroot /mnt echo -e "title    Arch Linux\nlinux    /vmlinuz-linux\ninitrd   /$CPU_TYPE-ucode.img\ninitrd   /initramfs-linux.img quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer\noptions  root=\"LABEL=KodiBoxFS\" rw" > /boot/loader/entries/arch.conf
-        arch-chroot /mnt echo -e "title    Arch Linux (fallback initramfs)\nlinux    /vmlinuz-linux\ninitrd   /$CPU_TYPE-ucode.img\ninitrd   /initramfs-linux-fallback.img quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer\noptions  root=\"LABEL=KodiBoxFS\" rw" > /boot/loader/entries/arch-fallback.conf
+        echo -e "default         arch.conf\ntimeout         0\nconsole-mode    max\neditor          no" > /mnt/boot/loader/loader.conf
+        echo -e "title    Arch Linux\nlinux    /vmlinuz-linux\ninitrd   /$CPU_TYPE-ucode.img\ninitrd   /initramfs-linux.img quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer\noptions  root=\"LABEL=KodiBoxFS\" rw" > /mnt/boot/loader/entries/arch.conf
+        echo -e "title    Arch Linux (fallback initramfs)\nlinux    /vmlinuz-linux\ninitrd   /$CPU_TYPE-ucode.img\ninitrd   /initramfs-linux-fallback.img quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer\noptions  root=\"LABEL=KodiBoxFS\" rw" > /mnt/boot/loader/entries/arch-fallback.conf
     else
         dialog --infobox "Setting up bootloader..." 3 50 
         arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg &> /dev/null
