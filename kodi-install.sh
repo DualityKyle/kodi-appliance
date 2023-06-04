@@ -380,7 +380,6 @@ of space on disk for the OS." 10 57
 				
 				# Partition disk
 				dialog --backtitle "Kodi Standalone Appliance Installer" --infobox "Partitioning $DISK and creating filesystem..." 3 60
-				#create_partition_table
 				create_filesystem
 				break
 			else
@@ -390,23 +389,6 @@ of space on disk for the OS." 10 57
 			main_menu
 		fi
   done
-}
-
-create_partition_table () {
-	# Set GPT for UEFI or MBR for BIOS systems
-	if $UEFI_SUPPORT; then
-        parted -s "$DISK" mklabel gpt &> /dev/null
-    else
-        parted -s "$DISK" mklabel msdos &> /dev/null
-    fi
-    # If any errors, abort install
-    if [[ $? -ne 0 ]]; then
-        dialog --title "!!! ERROR !!!" --backtitle "Kodi Standalone Appliance Installer" \
-            --msgbox "An error was encountered while trying to partition $DISK. Ensure the selected disk is not active \
-before running the install script.\n\n If the error keeps occurring, reboot the device and try again." 8 80
-        reset;
-        exit 1
-    fi
 }
 
 create_filesystem () {
@@ -430,12 +412,12 @@ create_filesystem () {
 		ROOT_PARTITION="${DISK}${PREFIX}1"
 		if $ENABLE_SWAP; then
 			SWAP_PARTITION="${DISK}${PREFIX}2"
-			echo -e "n\np\n1\n\n-${SWAP_SIZE}G\nn\np\n2\n\n\nt\n1\n83\nt\n2\n82\nw" | fdisk "$DISK" &> /dev/null
+			echo -e "n\np\n1\n\n-${SWAP_SIZE}G\nn\np\n2\n\n\nt\n1\n83\nt\n2\n82\nw" | fdisk  -w always -W always"$DISK" &> /dev/null
 
 			mkswap "$SWAP_PARTITION" &> /dev/null
 			swapon "$SWAP_PARTITION"
 		else
-			echo -e "n\np\n1\n\n\nt\n83\nw" | fdisk "$DISK" &> /dev/null 
+			echo -e "n\np\n1\n\n\nt\n83\nw" | fdisk -w always -W always "$DISK" &> /dev/null 
 		fi
   fi
 	
@@ -455,7 +437,7 @@ create_filesystem () {
 
 # Update mirror list with reflector for faster speeds
 update_mirrors () {
-    dialog --title "Update Repo Mirror List" \
+    dialog --title "Update Repo Mirror List" --backtitle "Kodi Standalone Appliance Installer" \
         --yesno "Would you like to update the mirror list? Updating the list \
 may help speed up package download speeds. It is recommended to do this for a \
 quicker install experience." 8 70
@@ -480,7 +462,11 @@ prepare_install () {
         SYSTEM_PACKAGES+=('bluez' 'bluez-utils')
     fi
 
- # ADD CPU TYPE STUFF
+		if [[ "$CPU_TYPE" = "amd" ]]; then
+			SYSTEM_PACKAGES+=('amd-ucode')
+		elif [[ "$CPU_TYPE" = "intel" ]]; then
+			SYSTEM_PACKAGES+=('intel_ucode')
+		fi
 
     # Add Kodi packages
     SYSTEM_PACKAGES+=('kodi' 'lzo')
