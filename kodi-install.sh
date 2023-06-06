@@ -479,7 +479,7 @@ prepare_install () {
 		if [[ "$CPU_TYPE" = "amd" ]]; then
 			SYSTEM_PACKAGES+=('amd-ucode')
 		elif [[ "$CPU_TYPE" = "intel" ]]; then
-			SYSTEM_PACKAGES+=('intel_ucode')
+			SYSTEM_PACKAGES+=('intel-ucode')
 		fi
 
     # Add Kodi packages
