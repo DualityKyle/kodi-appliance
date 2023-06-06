@@ -558,11 +558,11 @@ will be installed:\n\n${BASE_PACKAGES[*]} ${SYSTEM_PACKAGES[*]}\n\nProceed with 
             pacstrap -K /mnt "${BASE_PACKAGES[@]}" "${SYSTEM_PACKAGES[@]}"
             if [[ $? -eq 0 ]]; then
                 SUCCESS=true
-            else
-                dialog --backtitle "Kodi Standalone Appliance Installer" --title "!!! ERROR !!!" \
-                    --msgbox "The appliance has failed to installed. An error occured \
-while running the \"pacstrap\" command." 7 65
-                reset; exit 1
+            #else
+                #dialog --backtitle "Kodi Standalone Appliance Installer" --title "!!! ERROR !!!" \
+                 #   --msgbox "The appliance has failed to installed. An error occured \
+#while running the \"pacstrap\" command." 7 65
+ #               reset; exit 1
             fi
             break
         else
