@@ -443,7 +443,7 @@ package download speeds. It is recommended to do this for a quicker install expe
 
 	if [[ $? -eq 0 ]]; then
 		# The Live ISO runs reflector on boot. We'll download the original https mirrorlist to parse
-		curl https://archlinux.org/mirrorlist/all/https/ > /etc/pacman.d/mirrorlist &> /dev/null
+		curl -s https://archlinux.org/mirrorlist/all/https/ > /etc/pacman.d/mirrorlist
 
 		countries=()
 		# Read all entries in /etc/pacman.d/mirrorlist and output only the countries
