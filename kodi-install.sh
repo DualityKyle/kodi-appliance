@@ -442,14 +442,15 @@ update_mirrors () {
 package download speeds. It is recommended to do this for a quicker install experience." 8 70
 
 	if [[ $? -eq 0 ]]; then
+		# The Live ISO runs reflector on boot. We'll download the original https mirrorlist to parse
+		curl https://archlinux.org/mirrorlist/all/https/ > /etc/pacman.d/mirrorlist
+		
 		countries=()
 		# Read all entries in /etc/pacman.d/mirrorlist and output only the countries
 		while read -r line; do
 			countries+=("$line" "")
 		done < <(tail -n +4 /etc/pacman.d/mirrorlist | grep -E "^## [A-Za-z].*" | sed -e 's/## //')
 
-		echo "${countries[@]}"
-		
 		COUNTRY=$(dialog --title "Update Mirror List" --backtitle "Kodi Standalone Appliance Installer" \
 			--nocancel --menu "Choose the country that is closest to you. The mirror list will be updated \
 to use the mirrors your selected country.\n\nSelect country:" 30 65 16 "${countries[@]}" 3>&1 1>&2 2>&3)
