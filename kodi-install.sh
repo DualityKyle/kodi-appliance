@@ -443,8 +443,8 @@ package download speeds. It is recommended to do this for a quicker install expe
 
 	if [[ $? -eq 0 ]]; then
 		# The Live ISO runs reflector on boot. We'll download the original https mirrorlist to parse
-		curl https://archlinux.org/mirrorlist/all/https/ > /etc/pacman.d/mirrorlist
-		
+		curl https://archlinux.org/mirrorlist/all/https/ > /etc/pacman.d/mirrorlist &> /dev/null
+
 		countries=()
 		# Read all entries in /etc/pacman.d/mirrorlist and output only the countries
 		while read -r line; do
@@ -680,17 +680,17 @@ setup_standalone_service () {
 	arch-chroot /mnt systemctl enable kodi-wayland.service
 }
 
-#welcome
-#network_check
-#set_keymap
-#set_locale
-#set_timezone
-#set_hostname
-#set_userinfo
-#set_root_pw
-#format_disk
+welcome
+network_check
+set_keymap
+set_locale
+set_timezone
+set_hostname
+set_userinfo
+set_root_pw
+format_disk
 update_mirrors
-#prepare_install
-#install_system
-#postinstall_setup
-#setup_standalone_service
+prepare_install
+install_system
+postinstall_setup
+setup_standalone_service
