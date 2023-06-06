@@ -441,14 +441,9 @@ update_mirrors () {
 		--yesno "Would you like to update the mirror list? Updating the list may help speed up \
 package download speeds. It is recommended to do this for a quicker install experience." 8 70
 
-	countries=()
-	# Read all entries in /etc/pacman.d/mirrorlist and output only the countries
-	while read -r line; do
-		countries+=("$line" "")
-	done < <(tail -n +4 /etc/pacman.d/mirrorlist | grep -E "^## [A-Za-z].*" | sed -e 's/## //')
-
-
 	if [[ $? -eq 0 ]]; then
+		countries=()
+		# Read all entries in /etc/pacman.d/mirrorlist and output only the countries
 		while read -r line; do
 			countries+=("$line" "")
 		done < <(tail -n +4 /etc/pacman.d/mirrorlist | grep -E "^## [A-Za-z].*" | sed -e 's/## //')
@@ -664,17 +659,17 @@ postinstall_setup () {
 
 setup_standalone_service () {
 	# 0644
-	cp "$DIR"/service/99-kodi.rules /usr/lib/udev/rules.d/99-kodi.rules
+	cp "$DIR"/service/99-kodi.rules /mnt/usr/lib/udev/rules.d/99-kodi.rules
 	# 0644
-	cp $"DIR"/service/kodi-standalone /etc/conf.d/kodi-standalone
+	cp "$DIR"/service/kodi-standalone /mnt/etc/conf.d/kodi-standalone
 
 	# 0644
-	cp "$DIR"/service/x86/init/kodi-gbm.service /usr/lib/systemd/system/kodi-gbm.service
-	cp "$DIR"/service/x86/init/kodi-wayland.service /usr/lib/systemd/system/kodi-wayland.service
-	cp "$DIR"/service/x86/init/kodi-x11.service /usr/lib/systemd/system/kodi-x11.service
+	cp "$DIR"/service/x86/init/kodi-gbm.service /mnt/usr/lib/systemd/system/kodi-gbm.service
+	cp "$DIR"/service/x86/init/kodi-wayland.service /mnt/usr/lib/systemd/system/kodi-wayland.service
+	cp "$DIR"/service/x86/init/kodi-x11.service /mnt/usr/lib/systemd/system/kodi-x11.service
 
-	cp "$DIR"/service/x86/init/tmpfiles.conf /usr/lib/tmpfiles.d/kodi-standalone.conf
-	cp "$DIR"/service/x86/init/sysusers.conf /usr/lib/sysusers.d/kodi-standalone.conf
+	cp "$DIR"/service/x86/init/tmpfiles.conf /mnt/usr/lib/tmpfiles.d/kodi-standalone.conf
+	cp "$DIR"/service/x86/init/sysusers.conf /mnt/usr/lib/sysusers.d/kodi-standalone.conf
 
 	arch-chroot /mnt systemd-sysusers
 	arch-chroot /mnt systemd-tmpfiles --create
@@ -682,17 +677,17 @@ setup_standalone_service () {
 	arch-chroot /mnt systemctl enable kodi-wayland.service
 }
 
-welcome
-network_check
-set_keymap
-set_locale
-set_timezone
-set_hostname
-set_userinfo
-set_root_pw
-format_disk
+#welcome
+#network_check
+#set_keymap
+#set_locale
+#set_timezone
+#set_hostname
+#set_userinfo
+#set_root_pw
+#format_disk
 update_mirrors
-prepare_install
-install_system
-postinstall_setup
-setup_standalone_service
+#prepare_install
+#install_system
+#postinstall_setup
+#setup_standalone_service
