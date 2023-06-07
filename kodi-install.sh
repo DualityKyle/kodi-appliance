@@ -456,7 +456,11 @@ package download speeds. It is recommended to do this for a quicker install expe
 to use the mirrors your selected country.\n\nSelect country:" 30 65 16 "${countries[@]}" 3>&1 1>&2 2>&3)
 
 		dialog --backtitle "Kodi Standalone Appliance Installer" --infobox "Updating mirror list..." 3 50
-		reflector --latest 10 --country "$COUNTRY" --protocol https --sort rate --save /etc/pacman.d/mirrorlist &> /dev/null
+		if [[ "$COUNTRY" = "Worldwide" ]]; then
+			reflector --latest 10 --completion-percent 100 --protocol https --sort rate --save /etc/pacman.d/mirrorlist &> /dev/null
+		else
+			reflector --latest 5 --country "$COUNTRY" --completion-percent 100 --protocol https --sort rate --save /etc/pacman.d/mirrorlist &> /dev/null
+		fi
 	fi
 }
 
