@@ -494,7 +494,7 @@ use to display Kodi on the appliance. If you are unsure on this, we recommend \
 using the \"X11\" option for ease of use and compatibility.\n\nSelect display \
 method:" 16 50 5 \
 "x11" "Xorg" \
-"wayland" "Wayland kiosk-mode using cage" \
+"wayland" "Wayland (Cage kiosk mode)" \
 "gbm" "GBM (not recommended)" 3>&1 1>&2 2>&3)
     if [[ "$DISPLAY_MODE" = "x11" ]]; then
         SYSTEM_PACKAGES+=('xorg-server' 'xorg-xinit' 'libinput')
@@ -666,23 +666,49 @@ postinstall_setup () {
 }
 
 setup_standalone_service () {
-	# 0644
 	cp "$DIR"/service/99-kodi.rules /mnt/usr/lib/udev/rules.d/99-kodi.rules
-	# 0644
 	cp "$DIR"/service/kodi-standalone /mnt/etc/conf.d/kodi-standalone
 
-	# 0644
-	cp "$DIR"/service/x86/init/kodi-gbm.service /mnt/usr/lib/systemd/system/kodi-gbm.service
-	cp "$DIR"/service/x86/init/kodi-wayland.service /mnt/usr/lib/systemd/system/kodi-wayland.service
-	cp "$DIR"/service/x86/init/kodi-x11.service /mnt/usr/lib/systemd/system/kodi-x11.service
+	cp "$DIR"/service/kodi-gbm.service /mnt/usr/lib/systemd/system/kodi-gbm.service
+	cp "$DIR"/service/kodi-wayland.service /mnt/usr/lib/systemd/system/kodi-wayland.service
+	cp "$DIR"/service/kodi-x11.service /mnt/usr/lib/systemd/system/kodi-x11.service
 
-	cp "$DIR"/service/x86/init/tmpfiles.conf /mnt/usr/lib/tmpfiles.d/kodi-standalone.conf
-	cp "$DIR"/service/x86/init/sysusers.conf /mnt/usr/lib/sysusers.d/kodi-standalone.conf
+	cp "$DIR"/service/tmpfiles.conf /mnt/usr/lib/tmpfiles.d/kodi-standalone.conf
+	cp "$DIR"/service/sysusers.conf /mnt/usr/lib/sysusers.d/kodi-standalone.conf
 
 	arch-chroot /mnt systemd-sysusers
 	arch-chroot /mnt systemd-tmpfiles --create
 
-	arch-chroot /mnt systemctl enable kodi-wayland.service
+	arch-chroot /mnt systemctl enable kodi-"$DISPLAY_MODE".service
+
+  installed=true
+}
+
+reboot_system () {
+  if $installed; then
+    while true; do
+      choice=$(dialog --title "Installation Completed" --backtitle "Kodi Standalone Appliance Installer" --nocancel \
+        --menu "The appliance has finished installing. You must restart your system in order to use it.\n\nPlease \
+select one of the following options:" 13 60 3 \
+        "Reboot" "Reboot" \
+        "Poweroff" "Power Off" 3>&1 1>&2 2>&3)
+        
+      dialog --infobox "Unmounting partitions on /mnt..." 3 50
+      umount -R /mnt
+      
+      case "$choice" in
+        "Reboot") reset ; reboot ; exit ;;
+        "Poweroff") reset ; poweroff ; exit ;;
+      esac
+    done
+  else
+    dialog --title "Installation Incomplete!" --backtitle "Kodi Standalone Appliance Installer" \
+      --yesno "The installation is incomplete.\n\nAre you sure you want to reboot your system?" 7 60
+    
+    if [ $? -eq 0 ]; then
+      reset ; reboot ; exit
+    fi
+  fi
 }
 
 welcome
