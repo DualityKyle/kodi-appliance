@@ -688,8 +688,9 @@ reboot_system () {
   if $installed; then
     while true; do
       choice=$(dialog --title "Installation Completed" --backtitle "Kodi Standalone Appliance Installer" --nocancel \
-        --menu "The appliance has finished installing. You must restart your system in order to use it.\n\nPlease \
-select one of the following options:" 13 60 3 \
+        --menu "The appliance has finished installing. You must restart your system in order to use it. After rebooting, \
+You will likely want to do things like install any skins or addons, configure your remote controls, and set up a firewall \
+(ufw is included for this). \n\nPlease select one of the following options:" 13 60 3 \
         "Reboot" "Reboot" \
         "Poweroff" "Power Off" 3>&1 1>&2 2>&3)
         
