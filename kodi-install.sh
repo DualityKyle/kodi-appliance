@@ -352,7 +352,7 @@ Only enter the number. For example, if you want a swap partition size of 8 GiB, 
 						if [[ "$SWAP_SIZE" -gt $((disk_size_gib - 4)) ]]; then
 							dialog --title "Disk Setup" --backtitle "Kodi Standalone Appliance Installer" \
 								--msgbox "ERROR: The amount you entered for the swap partition exceeds the available space \
-on your disk. Note that the install will prevent you from choosing a swap size that leaves less than 4 GiB \
+on your disk. Note that the installer will prevent you from choosing a swap size that leaves less than 4 GiB \
 of space on disk for the OS." 10 57
 						else
 							ENABLE_SWAP=true
@@ -522,25 +522,29 @@ performance on your appliance.\n\nChoose graphics type:" 18 70 5 \
     if [[ "$DISPLAY_MODE" = "x11" ]]; then     
         if [[ "$GPU_TYPE" = "igpu-amd" ]] || [[ "$GPU_TYPE" = "amd" ]]; then
             SYSTEM_PACKAGES+=('xf86-video-amdgpu')
+	elif [[ "$GPU_TYPE" = "nvidia" ]]; then
+            # Fallback to nouveau for unsupported Nvidia cards
+	    gpu_pci_id=$(lspci -nn  | grep -ioP 'VGA.*NVIDIA.*\[\K[\w:]+' | sed 's/.*://')
+            if grep -Fq "$gpu_pci_id" "$DIR"/config/nvidia_340_pci_ids; then
+	        SYSTEM_PACKAGES+=('xf86-video-nouveau')
+	    fi
         fi
     fi
     # Install required video drivers
-    if [[ "$GPU_TYPE" = "igpu-intel" ]]; then
-        SYSTEM_PACKAGES+=('intel-media-driver' 'libva-intel-driver' 'vulkan-intel')      
-    elif [[ "$GPU_TYPE" = "igpu-amd" ]] || [[ "$GPU_TYPE" = "amd" ]]; then
-        SYSTEM_PACKAGES+=('mesa' 'libva-mesa-driver' 'mesa-vdpau' 'vulkan-radeon')
     # NOTE: Intel Arc GPU's require kernel version 6.2 or higher
-    elif [[ "$GPU_TYPE" = "arc" ]]; then
-        SYSTEM_PACKAGES+=('intel-media-driver' 'vulkan-intel')
+    if [[ "$GPU_TYPE" = "igpu-intel" ]] || [[ "$GPU_TYPE" = "arc" ]]; then
+        SYSTEM_PACKAGES+=('mesa' 'intel-media-driver' 'vulkan-intel')      
+    elif [[ "$GPU_TYPE" = "igpu-amd" ]] || [[ "$GPU_TYPE" = "amd" ]]; then
+        SYSTEM_PACKAGES+=('mesa' 'libva-mesa-driver' 'mesa-vdpau' 'vulkan-radeon' 'amdvlk')
     elif [[ "$GPU_TYPE" = "nvidia" ]]; then
         # Get GPU PCI device ID
         gpu_pci_id=$(lspci -nn  | grep -ioP 'VGA.*NVIDIA.*\[\K[\w:]+' | sed 's/.*://')
         # Ensure to install the supported Nvidia driver
         if grep -Fq "$gpu_pci_id" "$DIR"/config/nvidia_390_pci_ids; then
             SYSTEM_PACKAGES+=('nvidia-390xx' 'nvidia-390xx-utils' 'nvidia-390xx-settings')
-        # Fallback to nouveau for unsupported Nvidia cards
+        # Ensure to install mesa if nouveau will be used
         elif grep -Fq "$gpu_pci_id" "$DIR"/config/nvidia_340_pci_ids; then
-            SYSTEM_PACKAGES+=('xf86-video-nouveau' 'mesa')
+            SYSTEM_PACKAGES+=('mesa vulkan-nouveau')
         else
             SYSTEM_PACKAGES+=('nvidia' 'nvidia-utils' 'nvidia-settings')
         fi
