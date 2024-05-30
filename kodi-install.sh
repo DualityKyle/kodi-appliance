@@ -393,7 +393,7 @@ of space on disk for the OS." 10 57
 
 create_filesystem () {
 	# Create EFI partition for UEFI systems
-	if $UEFI; then
+	if $UEFI_SUPPORT; then
 		BOOT_PARTITION="${DISK}${PREFIX}1"
 		ROOT_PARTITION="${DISK}${PREFIX}2"
 		
