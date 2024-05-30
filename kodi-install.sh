@@ -412,7 +412,7 @@ create_filesystem () {
 		ROOT_PARTITION="${DISK}${PREFIX}1"
 		if $ENABLE_SWAP; then
 			SWAP_PARTITION="${DISK}${PREFIX}2"
-			echo -e "n\np\n1\n\n-${SWAP_SIZE}G\nn\np\n2\n\n\nt\n1\n83\nt\n2\n82\nw" | fdisk  -w always -W always"$DISK" &> /dev/null
+			echo -e "n\np\n1\n\n-${SWAP_SIZE}G\nn\np\n2\n\n\nt\n1\n83\nt\n2\n82\nw" | fdisk -w always -W always "$DISK" &> /dev/null
 
 			mkswap "$SWAP_PARTITION" &> /dev/null
 			swapon "$SWAP_PARTITION"
