@@ -730,3 +730,4 @@ prepare_install
 install_system
 postinstall_setup
 setup_standalone_service
+reboot_system
