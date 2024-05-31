@@ -664,9 +664,12 @@ postinstall_setup () {
         echo -e "title    Arch Linux (fallback initramfs)\nlinux    /vmlinuz-linux\ninitrd   /$CPU_TYPE-ucode.img\ninitrd   /initramfs-linux-fallback.img\noptions  root=\"LABEL=KodiBoxFS\" rw quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer" > /mnt/boot/loader/entries/arch-fallback.conf
     else
         dialog --backtitle "Kodi Standalone Appliance Installer" --infobox "Setting up GRUB..." 3 50 
-        arch-chroot /mnt grub-install --target=i386-pc "$DISK" &> /dev/null
+	arch-chroot /mnt mkdir -p /etc/default/grub.d
+        echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer"' > /etc/default/grub.d/99-silent-boot.cfg
 	arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg &> /dev/null
+        arch-chroot /mnt grub-install --target=i386-pc "$DISK" &> /dev/null
     fi
+
 }
 
 setup_standalone_service () {
