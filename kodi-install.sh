@@ -667,7 +667,9 @@ postinstall_setup () {
     else
         dialog --backtitle "Kodi Standalone Appliance Installer" --infobox "Setting up GRUB..." 3 50 
 	arch-chroot /mnt mkdir -p /etc/default/grub.d &> /dev/null
-        echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer vt.global_cursor_default=0"' > /mnt/etc/default/grub.d/99-silent-boot.cfg
+        echo 'GRUB_DEFAULT=0' > /mnt/etc/default/grub.d/99-silent-boot.cfg
+	echo 'GRUB_TIMEOUT=0' >> /mnt/etc/default/grub.d/99-silent-boot.cfg
+        echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer vt.global_cursor_default=0"' >> /mnt/etc/default/grub.d/99-silent-boot.cfg
         arch-chroot /mnt grub-install --target=i386-pc "$DISK" &> /dev/null
 	arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg &> /dev/null
         # Suppress "Loading Linux" messages from grub
