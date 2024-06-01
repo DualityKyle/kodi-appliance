@@ -668,6 +668,8 @@ postinstall_setup () {
         echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer"' > /mnt/etc/default/grub.d/99-silent-boot.cfg
         arch-chroot /mnt grub-install --target=i386-pc "$DISK" &> /dev/null
 	arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg &> /dev/null
+        # Suppress "Loading Linux" messages from grub
+	sed -i 's/echo/#echo/g' /mnt/boot/grub/grub.cfg
     fi
 
 }
