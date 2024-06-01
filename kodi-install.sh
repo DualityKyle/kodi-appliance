@@ -624,6 +624,8 @@ postinstall_setup () {
 
     # Create initramfs
     dialog --backtitle "Kodi Standalone Appliance Installer" --infobox "Running mkinitcpio..." 3 50
+    # Edit mkinitcpio.conf to hide fsck messages during boot
+    sed -i '/^HOOKS=/ s/udev/systemd/' /mnt/etc/mkinitcpio.conf
     arch-chroot /mnt mkinitcpio -P &> /dev/null
     
     # User account setup
@@ -660,12 +662,12 @@ postinstall_setup () {
         arch-chroot /mnt bootctl install &> /dev/null
 
         echo -e "default         arch.conf\ntimeout         0\nconsole-mode    max\neditor          no" > /mnt/boot/loader/loader.conf
-        echo -e "title    Arch Linux\nlinux    /vmlinuz-linux\ninitrd   /$CPU_TYPE-ucode.img\ninitrd   /initramfs-linux.img\noptions  root=\"LABEL=KodiBoxFS\" rw quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer" > /mnt/boot/loader/entries/arch.conf
-        echo -e "title    Arch Linux (fallback initramfs)\nlinux    /vmlinuz-linux\ninitrd   /$CPU_TYPE-ucode.img\ninitrd   /initramfs-linux-fallback.img\noptions  root=\"LABEL=KodiBoxFS\" rw quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer" > /mnt/boot/loader/entries/arch-fallback.conf
+        echo -e "title    Arch Linux\nlinux    /vmlinuz-linux\ninitrd   /$CPU_TYPE-ucode.img\ninitrd   /initramfs-linux.img\noptions  root=\"LABEL=KodiBoxFS\" rw quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer vt.global_cursor_default=0" > /mnt/boot/loader/entries/arch.conf
+        echo -e "title    Arch Linux (fallback initramfs)\nlinux    /vmlinuz-linux\ninitrd   /$CPU_TYPE-ucode.img\ninitrd   /initramfs-linux-fallback.img\noptions  root=\"LABEL=KodiBoxFS\" rw quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer vt.global_cursor_default=0" > /mnt/boot/loader/entries/arch-fallback.conf
     else
         dialog --backtitle "Kodi Standalone Appliance Installer" --infobox "Setting up GRUB..." 3 50 
 	arch-chroot /mnt mkdir -p /etc/default/grub.d &> /dev/null
-        echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer"' > /mnt/etc/default/grub.d/99-silent-boot.cfg
+        echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT rd.systemd.show_status=auto rd.udev.log_level=3 fbcon=nodefer vt.global_cursor_default=0"' > /mnt/etc/default/grub.d/99-silent-boot.cfg
         arch-chroot /mnt grub-install --target=i386-pc "$DISK" &> /dev/null
 	arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg &> /dev/null
         # Suppress "Loading Linux" messages from grub
