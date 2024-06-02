@@ -662,7 +662,7 @@ postinstall_setup () {
     if [[ "$DISPLAY_MODE" = "x11" ]]; then
         echo 'DISPLAY=:0' >> /mnt/etc/environment
 	echo -e '#!/bin/sh\nxset s off\nxset -dpms' > /mnt/etc/X11/xinit/xinitrc.d/99-disable-dpms.sh
-        chmod +x /mnt/etc/X11/xinit/xinitrc.d/disable-dpms.sh
+        chmod +x /mnt/etc/X11/xinit/xinitrc.d/99-disable-dpms.sh
     fi
 
     # Set up bootloader
