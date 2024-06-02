@@ -554,7 +554,7 @@ performance on your appliance.\n\nChoose graphics type:" 18 70 5 \
 # Actually install the system with pacstrap
 install_system () {
     # Packages we will include regardless of user selections
-    BASE_PACKAGES=('base' 'linux' 'linux-firmware' 'networkmanager' 'pacman-contrib' 'bash-completion' 'sudo' 'nano' 'e2fsprogs' 'neofetch' 'openssh' 'wget' 'man-db' 'man-pages' 'texinfo' 'git' 'ufw')
+    BASE_PACKAGES=('base' 'linux' 'linux-firmware' 'networkmanager' 'iw' 'pacman-contrib' 'bash-completion' 'sudo' 'nano' 'e2fsprogs' 'neofetch' 'openssh' 'wget' 'man-db' 'man-pages' 'texinfo' 'git' 'ufw')
 
     while true; do
         dialog --title "Appliance Installation Review" --backtitle "Kodi Standalone Appliance Installer" \
