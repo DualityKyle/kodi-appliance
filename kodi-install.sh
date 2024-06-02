@@ -655,16 +655,6 @@ postinstall_setup () {
 		######### CONSIDER ADDING DIALOG TO ASK ABOUT ENABLING SSHD.SERVICE
 		#################################
 
-    # If we are using Xorg, we need to configure a few things to prevent the screen from 
-    # timing out. While not necessary, we should be letting Kodi control this as sometimes 
-    # this can cause playback issues if you leave a video paused and come back to it after 
-    # turning the screen back on
-    if [[ "$DISPLAY_MODE" = "x11" ]]; then
-        echo 'DISPLAY=:0' >> /mnt/etc/environment
-	echo -e '#!/bin/sh\nxset s off\nxset -dpms' > /mnt/etc/X11/xinit/xinitrc.d/99-disable-dpms.sh
-        chmod +x /mnt/etc/X11/xinit/xinitrc.d/99-disable-dpms.sh
-    fi
-
     # Set up bootloader
     # If UEFI we will use systemd boot
     if $UEFI_SUPPORT; then
