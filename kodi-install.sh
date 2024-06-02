@@ -497,7 +497,7 @@ method:" 16 50 5 \
 "wayland" "Wayland (Cage kiosk mode)" \
 "gbm" "GBM (not recommended)" 3>&1 1>&2 2>&3)
     if [[ "$DISPLAY_MODE" = "x11" ]]; then
-        SYSTEM_PACKAGES+=('xorg-server' 'xorg-xinit' 'libinput')
+        SYSTEM_PACKAGES+=('xorg-server' 'xorg-xinit' 'xorg-xset' 'libinput')
     elif [[ "$DISPLAY_MODE" = "wayland" ]]; then
         SYSTEM_PACKAGES+=('cage' 'libinput' 'xorg-xwayland')
     else
@@ -654,6 +654,16 @@ postinstall_setup () {
 		#################################
 		######### CONSIDER ADDING DIALOG TO ASK ABOUT ENABLING SSHD.SERVICE
 		#################################
+
+    # If we are using Xorg, we need to configure a few things to prevent the screen from 
+    # timing out. While not necessary, we should be letting Kodi control this as sometimes 
+    # this can cause playback issues if you leave a video paused and come back to it after 
+    # turning the screen back on
+    if [[ "$DISPLAY_MODE" = "x11" ]]; then
+        echo 'DISPLAY=:0' >> /mnt/etc/environment
+	echo -e '#!/bin/sh\nxset s off\nxset -dpms' > /mnt/etc/X11/xinit/xinitrc.d/99-disable-dpms.sh
+        chmod +x /mnt/etc/X11/xinit/xinitrc.d/disable-dpms.sh
+    fi
 
     # Set up bootloader
     # If UEFI we will use systemd boot
